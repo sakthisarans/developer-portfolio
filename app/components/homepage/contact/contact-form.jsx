@@ -9,14 +9,16 @@ import { toast } from "react-toastify";
 function ContactForm() {
   const [error, setError] = useState({ email: false, required: false });
   const [isLoading, setIsLoading] = useState(false);
+  //  body:JSON.stringify({"name":name,"email":email,""body":body,"to":"contact@sakthisaran.in"})});
   const [userInput, setUserInput] = useState({
     name: "",
     email: "",
-    message: "",
+    body: "",
+    to: process.env.NEXT_PUBLIC_EMAIL_ADDRESS,
   });
 
   const checkRequired = () => {
-    if (userInput.email && userInput.message && userInput.name) {
+    if (userInput.email && userInput.body && userInput.name) {
       setError({ ...error, required: false });
     }
   };
@@ -24,7 +26,7 @@ function ContactForm() {
   const handleSendMail = async (e) => {
     e.preventDefault();
 
-    if (!userInput.email || !userInput.message || !userInput.name) {
+    if (!userInput.email || !userInput.body || !userInput.name) {
       setError({ ...error, required: true });
       return;
     } else if (error.email) {
@@ -36,7 +38,7 @@ function ContactForm() {
     try {
       setIsLoading(true);
       const res = await axios.post(
-        `${process.env.NEXT_PUBLIC_APP_URL}/api/contact`,
+        `${process.env.NEXT_PUBLIC_APP_URL}/server/mailservice/sendemail`,
         userInput
       );
 
@@ -44,7 +46,7 @@ function ContactForm() {
       setUserInput({
         name: "",
         email: "",
-        message: "",
+        body: "",
       });
     } catch (error) {
       toast.error(error?.response?.data?.message);
@@ -96,10 +98,10 @@ function ContactForm() {
               maxLength="500"
               name="message"
               required={true}
-              onChange={(e) => setUserInput({ ...userInput, message: e.target.value })}
+              onChange={(e) => setUserInput({ ...userInput, body: e.target.value })}
               onBlur={checkRequired}
               rows="4"
-              value={userInput.message}
+              value={userInput.body}
             />
           </div>
           <div className="flex flex-col items-center gap-3">
