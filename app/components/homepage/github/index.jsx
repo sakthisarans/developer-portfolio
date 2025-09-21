@@ -2,11 +2,11 @@
 import Link from 'next/link';
 import { FaArrowRight } from 'react-icons/fa';
 import BlogCard from './blog-card';
+import Image from 'next/image';
 
-function Github({ github,git }) {
-
+function Github({ github, git }) {
   return (
-    <div id='github' className="relative z-50 border-t my-12 lg:my-24 border-[#25213b]">
+    <div id="github" className="relative z-50 border-t my-12 lg:my-24 border-[#25213b]">
       <div className="w-[100px] h-[100px] bg-violet-100 rounded-full absolute top-6 left-[42%] translate-x-1/2 filter blur-3xl  opacity-20"></div>
 
       <div className="flex justify-center -translate-y-[1px]">
@@ -16,7 +16,7 @@ function Github({ github,git }) {
       </div>
 
       <div className="flex justify-center my-5 lg:py-8">
-        <div className="flex  items-center">
+        <div className="flex items-center">
           <span className="w-24 h-[2px] bg-[#1a1443]"></span>
           <span className="bg-[#1a1443] w-fit text-white p-2 px-5 text-xl rounded-md">
             Github
@@ -27,19 +27,28 @@ function Github({ github,git }) {
 
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 md:gap-5 lg:gap-8 xl:gap-10">
         {
-          github.slice(0, 6).map((repo, i) => (
-            repo?.cover_image &&
-            <BlogCard blog={repo} key={i} />
-          ))
+          github["repos"].slice(0, 6).map((repo, i) => {
+
+            return (
+              <BlogCard
+                key={i}
+                blog={{
+                  title: repo.name,
+                  description: repo.readme,
+                  cover_image: repo.image
+                }}
+              />
+            );
+          })
         }
       </div>
 
-      <div className="flex justify-center  mt-5 lg:mt-12">
+      <div className="flex justify-center mt-5 lg:mt-12">
         <Link
           className="flex items-center gap-1 hover:gap-3 rounded-full bg-gradient-to-r from-pink-500 to-violet-600 px-3 md:px-8 py-3 md:py-4 text-center text-xs md:text-sm font-medium uppercase tracking-wider text-white no-underline transition-all duration-200 ease-out hover:text-white hover:no-underline md:font-semibold"
           role="button"
-          href={git+"?tab=repositories"}
-          target='_blank'
+          href={git + "?tab=repositories"}
+          target="_blank"
         >
           <span>ALL REPOSITORIES</span>
           <FaArrowRight size={16} />

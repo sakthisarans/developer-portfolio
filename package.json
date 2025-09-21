@@ -7,12 +7,14 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "export": "next export"
   },
   "dependencies": {
     "@emailjs/browser": "^4.3.1",
     "@next/third-parties": "15.1.1",
     "axios": "^1.6.8",
+    "framer-motion": "^12.23.16",
     "lottie-react": "^2.4.1",
     "next": "15.1.1",
     "nodemailer": "^6.9.15",
@@ -21,6 +23,8 @@
     "react-fast-marquee": "^1.6.2",
     "react-google-recaptcha": "^3.1.0",
     "react-icons": "^4.11.0",
+    "react-markdown": "^10.1.0",
+    "react-spinners": "^0.17.0",
     "react-toastify": "^10.0.4",
     "sharp": "^0.33.5"
   },

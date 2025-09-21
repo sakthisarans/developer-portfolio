@@ -14,7 +14,7 @@ function ContactForm() {
     name: "",
     email: "",
     body: "",
-    to: process.env.NEXT_PUBLIC_EMAIL_ADDRESS,
+    subject: "Email From Portfolio"
   });
 
   const checkRequired = () => {
@@ -38,7 +38,7 @@ function ContactForm() {
     try {
       setIsLoading(true);
       const res = await axios.post(
-        `${process.env.NEXT_PUBLIC_APP_URL}/server/mailservice/sendemail`,
+        `${process.env.NEXT_PUBLIC_API_URL}/api/v1/sendemail`,
         userInput
       );
 

@@ -1,19 +1,13 @@
-FROM node:20 AS base
+FROM node:20-alpine AS builder
 WORKDIR /app
 COPY package*.json ./
 RUN npm install
-
 COPY . .
 RUN npm run build
 
-FROM node:20-alpine3.19 AS release
+FROM node:20-alpine AS runner
 WORKDIR /app
-RUN npm i -g pnpm
-
-COPY --from=base /app/node_modules ./node_modules
-COPY --from=base /app/package.json ./package.json
-COPY --from=base /app/.next ./.next
-
+RUN npm install -g serve
+COPY --from=builder /app/out ./out
 EXPOSE 3000
-
-CMD ["pnpm", "start"]
+CMD ["serve", "-s", "out", "-l", "3000"]
