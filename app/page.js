@@ -22,12 +22,12 @@ export default function Home() {
   useEffect(() => {
     async function fetchData() {
       try {
-        const blogRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/v1/content/genai/blog`);
+        const blogRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/v1/content/blog`);
         const blogData = await blogRes.json();
         const filteredBlogs = blogData.filter((item) => item?.cover_image).sort(() => Math.random() - 0.5);
         setBlogs(filteredBlogs);
 
-        const githubRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/v1/content/genai/github/pinned`);
+        const githubRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/v1/content/github/pinned`);
         const githubData = await githubRes.json();
         setGithub(githubData);
       } catch (error) {
