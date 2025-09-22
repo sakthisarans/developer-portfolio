@@ -6,11 +6,6 @@ yarn-error.log
 .pnpm-debug.log
 package-lock.json.backup
 
-# Ignore local development settings
-.env.local
-.env.development.local
-.env.test.local
-.env.production.local
 
 # Ignore build output
 .next
