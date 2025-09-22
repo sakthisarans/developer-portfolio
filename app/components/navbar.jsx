@@ -1,8 +1,7 @@
 // @flow strict
 import Link from "next/link";
-import { personalData } from "@/utils/data/personal-data";
 
-function Navbar() {
+function Navbar({ personalData }) {
   return (
     <nav className="bg-transparent">
       <div className="flex items-center justify-between py-5">
@@ -27,6 +26,9 @@ function Navbar() {
             <Link className="block px-4 py-2 no-underline outline-none hover:no-underline" href="/#skills"><div className="text-sm text-white transition-colors duration-300 hover:text-pink-600">SKILLS</div></Link>
           </li>
           <li>
+            <Link className="block px-4 py-2 no-underline outline-none hover:no-underline" href="/#projects"><div className="text-sm text-white transition-colors duration-300 hover:text-pink-600">PROJECTS</div></Link>
+          </li>
+          <li>
             <Link className="block px-4 py-2 no-underline outline-none hover:no-underline" href="/#education"><div className="text-sm text-white transition-colors duration-300 hover:text-pink-600">EDUCATION</div></Link>
           </li>
           <li>
@@ -35,9 +37,7 @@ function Navbar() {
           <li>
             <Link className="block px-4 py-2 no-underline outline-none hover:no-underline" href="/#blogs"><div className="text-sm text-white transition-colors duration-300 hover:text-pink-600">BLOGS</div></Link>
           </li>
-          <li>
-            <Link className="block px-4 py-2 no-underline outline-none hover:no-underline" href="/#projects"><div className="text-sm text-white transition-colors duration-300 hover:text-pink-600">PROJECTS</div></Link>
-          </li>
+          
         </ul>
       </div>
     </nav>

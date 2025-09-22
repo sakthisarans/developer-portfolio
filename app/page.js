@@ -11,36 +11,43 @@ import Projects from "./components/homepage/projects";
 import Skills from "./components/homepage/skills";
 import Github from "./components/homepage/github";
 import Chatbot from "./components/homepage/bot";
-
+import Footer from "./components/footer";
+import Navbar from "./components/navbar";
 import { PacmanLoader } from "react-spinners";
 
 export default function Home() {
-  const [blogs, setBlogs] = useState(null);
-  const [github, setGithub] = useState(null);
+  const [portfolio, setPortfolio] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    async function fetchData() {
-      try {
-        const blogRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/v1/content/blog`);
-        const blogData = await blogRes.json();
-        const filteredBlogs = blogData.filter((item) => item?.cover_image).sort(() => Math.random() - 0.5);
-        setBlogs(filteredBlogs);
+   const getUserIdFromDomain = () => {
+        if (typeof window !== "undefined") {
+            const hostname = window.location.hostname; // e.g. "localhost" or "xyz.portfolio.com"
 
-        const githubRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/v1/content/github/pinned`);
-        const githubData = await githubRes.json();
-        setGithub(githubData);
+            if (hostname.includes(".")) {
+                // Take the first part of the domain (subdomain)
+                return hostname.split(".")[0];
+            }
+
+            return hostname; // For "localhost"
+        }
+        return "";
+    };
+  useEffect(() => {
+    async function fetchPortfolio() {
+      try {
+        // Replace 'sakthisaran' with your actual UID if needed
+        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/v1/content/portfolio/${getUserIdFromDomain()}`);
+        const data = await res.json();
+        setPortfolio(data);
       } catch (error) {
-        // handle error (optional)
       } finally {
         setLoading(false);
       }
     }
-    fetchData();
+    fetchPortfolio();
   }, []);
 
-
-  if (loading || !blogs || !github) {
+  if (loading || !portfolio) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <PacmanLoader color="#a78bfa" size={40} />
@@ -50,16 +57,18 @@ export default function Home() {
 
   return (
     <div suppressHydrationWarning>
+      <Navbar personalData={portfolio.personalData}/>
       <Chatbot />
-      <HeroSection />
-      <AboutSection />
-      <Experience />
-      <Skills />
-      <Projects />
-      <Education />
-      <Github github={github} git={personalData.github} />
-      <Blog blogs={blogs} />
-      <ContactSection />
+      <HeroSection personalData={portfolio.personalData} skillsData={portfolio.skillsData} />
+      <AboutSection personalData={portfolio.personalData} />
+      <Experience experiences={portfolio.experiences} />
+      <Skills skills={portfolio.skillsData} />
+      <Projects projects={portfolio.projectsData} />
+      <Education educations={portfolio.educations} />
+      <Github github={portfolio.github} git={portfolio.personalData.github} />
+      <Blog blogs={portfolio.blog} />
+      <ContactSection contact={portfolio.contact} />
+      <Footer personalData={portfolio.personalData}/>
     </div>
   );
-};
+}

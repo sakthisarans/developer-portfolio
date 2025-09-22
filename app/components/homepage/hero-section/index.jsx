@@ -1,14 +1,12 @@
 // @flow strict
 
-import { personalData } from "@/utils/data/personal-data";
 import Image from "next/image";
 import Link from "next/link";
 import { BsGithub, BsLinkedin } from "react-icons/bs";
 import { MdDownload } from "react-icons/md";
 import { RiContactsFill } from "react-icons/ri";
-import { skillsData } from "@/utils/data/skills";
 
-function HeroSection() {
+function HeroSection({ personalData, skillsData }) {
   return (
     <section className="relative flex flex-col items-center justify-between py-4 lg:py-12">
       <Image
@@ -92,7 +90,7 @@ function HeroSection() {
               <div className="ml-4 lg:ml-8 mr-2">
                 <span className="text-white">skills:</span>
                 <span className="text-gray-400">{"['"}</span>
-                {skillsData.map((skill, index) => (
+                {skillsData && skillsData.map((skill, index) => (
                   <span key={skill}>
                     <span className="text-amber-300">{skill}</span>
                     {index < skillsData.length - 1 && (

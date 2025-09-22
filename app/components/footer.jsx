@@ -2,9 +2,8 @@
 import Link from 'next/link';
 import { CgGitFork } from "react-icons/cg";
 import { IoStar } from "react-icons/io5";
-import { personalData } from '@/utils/data/personal-data';
 
-function Footer() {
+function Footer({ personalData }) {
   return (
     <div className="relative border-t bg-[#0d1224] border-[#353951] text-white">
       <div className="mx-auto px-6 sm:px-12 lg:max-w-[70rem] xl:max-w-[76rem] 2xl:max-w-[92rem] py-6 lg:py-10">
