@@ -3,17 +3,26 @@ import React, { useState, useEffect, useRef } from "react";
 import ReactMarkdown from "react-markdown";
 import { motion } from 'framer-motion';
 
-
 const TypingDots = () => (
-    <motion.div
-        animate={{ opacity: [0.2, 1, 0.2] }}
-        transition={{ duration: 1, repeat: Infinity }}
-        style={{ display: 'inline-block', margin: '0 5px' }}
-    >
-        •
-    </motion.div>
+    <span className="typing-dots">
+        <motion.span
+            animate={{ y: [0, -6, 0] }}
+            transition={{ duration: 0.6, repeat: Infinity, ease: "easeInOut" }}
+            style={{ display: 'inline-block', margin: '0 1px', fontSize: 22 }}
+        >•</motion.span>
+        <motion.span
+            animate={{ y: [0, -6, 0] }}
+            transition={{ duration: 0.6, repeat: Infinity, ease: "easeInOut", delay: 0.2 }}
+            style={{ display: 'inline-block', margin: '0 1px', fontSize: 22 }}
+        >•</motion.span>
+        <motion.span
+            animate={{ y: [0, -6, 0] }}
+            transition={{ duration: 0.6, repeat: Infinity, ease: "easeInOut", delay: 0.4 }}
+            style={{ display: 'inline-block', margin: '0 1px', fontSize: 22 }}
+        >•</motion.span>
+    </span>
 );
-// Helper to get/set cookies
+
 function getCookie(name) {
     const match = document.cookie.match(new RegExp('(^| )' + name + '=([^;]+)'));
     return match ? match[2] : null;
@@ -22,8 +31,6 @@ function setCookie(name, value, days = 365) {
     const expires = new Date(Date.now() + days * 24 * 60 * 60 * 1000).toUTCString();
     document.cookie = `${name}=${value}; expires=${expires}; path=/`;
 }
-
-// Helper to get IP address
 async function getIP() {
     try {
         const res = await fetch("https://api.ipify.org?format=json");
@@ -43,22 +50,19 @@ export default function Chatbot() {
     const [chatId, setChatId] = useState(null);
     const messagesEndRef = useRef(null);
 
-    // Open animation: expand from icon
     const handleIconClick = () => {
         setAnimating(true);
         setTimeout(() => {
             setOpen(true);
             setAnimating(false);
-        }, 400); // Animation duration
+        }, 400);
     };
-
-    // Close animation: shrink to icon
     const handleClose = () => {
         setAnimating(true);
         setTimeout(() => {
             setOpen(false);
             setAnimating(false);
-        }, 400); // Animation duration
+        }, 400);
     };
 
     useEffect(() => {
@@ -83,24 +87,26 @@ export default function Chatbot() {
 
     const getUserIdFromDomain = () => {
         if (typeof window !== "undefined") {
-            const hostname = window.location.hostname; // e.g. "localhost" or "xyz.portfolio.com"
-
+            const hostname = window.location.hostname;
             if (hostname.includes(".")) {
-                // Take the first part of the domain (subdomain)
                 return hostname.split(".")[0];
             }
-
-            return hostname; // For "localhost"
+            return hostname;
         }
         return "";
     };
 
+    // Streaming handler
     const handleSend = async (e) => {
         e.preventDefault();
         if (!input.trim()) return;
         setMessages((msgs) => [...msgs, { from: "user", text: input }]);
-        setInput(""); // Clear input immediately
+        setInput("");
         setLoading(true);
+
+        // Add a placeholder for the streaming bot message
+        setMessages((msgs) => [...msgs, { from: "bot", text: "" }]);
+
         try {
             const apiUrl = process.env.NEXT_PUBLIC_API_URL || "";
             const res = await fetch(`${apiUrl}/api/v1/genai/search`, {
@@ -108,10 +114,62 @@ export default function Chatbot() {
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ message: input, chatid: chatId, userid: getUserIdFromDomain() }),
             });
-            const data = await res.json();
-            setMessages((msgs) => [...msgs, { from: "bot", text: data.reply }]);
+
+            if (!res.body || !window.ReadableStream) {
+                // fallback: not streaming
+                const data = await res.json();
+                setMessages((msgs) => {
+                    const updated = [...msgs];
+                    updated[updated.length - 1] = { from: "bot", text: data.reply };
+                    return updated;
+                });
+                setLoading(false);
+                return;
+            }
+
+            const reader = res.body.getReader();
+            let botText = "";
+            const decoder = new TextDecoder();
+
+            // Smoother streaming: update every 40ms or on chunk
+            let buffer = "";
+            let lastUpdate = Date.now();
+
+            while (true) {
+                const { value, done } = await reader.read();
+                if (done) break;
+                buffer += decoder.decode(value, { stream: true });
+
+                // Only update UI if enough time has passed or buffer is large
+                if (Date.now() - lastUpdate > 40 || buffer.length > 16) {
+                    botText += buffer;
+                    buffer = "";
+                    setMessages((msgs) => {
+                        const updated = [...msgs];
+                        updated[updated.length - 1] = { from: "bot", text: botText };
+                        return updated;
+                    });
+                    lastUpdate = Date.now();
+                }
+            }
+            // Flush any remaining buffer
+            if (buffer.length > 0) {
+                botText += buffer;
+                setMessages((msgs) => {
+                    const updated = [...msgs];
+                    updated[updated.length - 1] = { from: "bot", text: botText };
+                    return updated;
+                });
+            }
         } catch {
-            setMessages((msgs) => [...msgs, { from: "bot", text: "Something went wrong on our side. We’re looking into it, and things should be back to normal soon. Thanks for your patience." }]);
+            setMessages((msgs) => {
+                const updated = [...msgs];
+                updated[updated.length - 1] = {
+                    from: "bot",
+                    text: "Something went wrong on our side. We’re looking into it, and things should be back to normal soon. Thanks for your patience."
+                };
+                return updated;
+            });
         }
         setLoading(false);
     };
@@ -157,9 +215,9 @@ export default function Chatbot() {
                         bottom: "16px",
                         right: "16px",
                         width: "420px",
-                        maxWidth: "95vw", // Responsive width
+                        maxWidth: "95vw",
                         height: "600px",
-                        maxHeight: "80vh", // Responsive height
+                        maxHeight: "80vh",
                         background: "#fff",
                         borderRadius: "12px",
                         boxShadow: "0 4px 16px rgba(0,0,0,0.2)",
@@ -183,7 +241,7 @@ export default function Chatbot() {
                         bottom: "16px",
                         right: "16px",
                         width: "420px",
-                        maxWidth: "90vw", // <-- Reduced for mobile
+                        maxWidth: "90vw",
                         height: "600px",
                         maxHeight: "80vh",
                         background: "#fff",
@@ -206,14 +264,14 @@ export default function Chatbot() {
                         justifyContent: "space-between",
                         alignItems: "center",
                         color: "#000",
-                        fontSize: "16px" // <-- Reduced header text size
+                        fontSize: "16px"
                     }}>
                         Chat Assistant
                         <button
                             style={{
                                 background: "none",
                                 border: "none",
-                                fontSize: "18px", // <-- Reduced close button size
+                                fontSize: "18px",
                                 cursor: "pointer",
                                 color: "#000"
                             }}
@@ -230,8 +288,8 @@ export default function Chatbot() {
                             padding: "12px",
                             overflowY: "auto",
                             background: "#fafafa",
-                            scrollbarWidth: "none", // Firefox
-                            msOverflowStyle: "none", // IE 10+
+                            scrollbarWidth: "none",
+                            msOverflowStyle: "none",
                         }}
                         className="hide-scrollbar"
                     >
@@ -257,8 +315,6 @@ export default function Chatbot() {
                         {loading && (
                             <div style={{ marginBottom: "8px", textAlign: "left" }}>
                                 <TypingDots />
-                                <TypingDots />
-                                <TypingDots />
                             </div>
                         )}
                     </div>
@@ -273,11 +329,11 @@ export default function Chatbot() {
                                 borderRadius: "8px",
                                 color: "#000",
                                 background: "#fff",
-                                fontSize: "14px" // <-- Reduced input text size
+                                fontSize: "14px"
                             }}
                             placeholder="Type a message..."
                             disabled
-                            readOnly // Prevent typing while closing
+                            readOnly
                         />
                         <button
                             type="button"
@@ -310,7 +366,7 @@ export default function Chatbot() {
                         bottom: "16px",
                         right: "16px",
                         width: "420px",
-                        maxWidth: "90vw", // <-- Reduced for mobile
+                        maxWidth: "90vw",
                         height: "600px",
                         maxHeight: "80vh",
                         background: "#fff",
@@ -332,14 +388,14 @@ export default function Chatbot() {
                         justifyContent: "space-between",
                         alignItems: "center",
                         color: "#000",
-                        fontSize: "16px" // <-- Reduced header text size
+                        fontSize: "16px"
                     }}>
                         Chat Assistant
                         <button
                             style={{
                                 background: "none",
                                 border: "none",
-                                fontSize: "18px", // <-- Reduced close button size
+                                fontSize: "18px",
                                 cursor: "pointer",
                                 color: "#000"
                             }}
@@ -356,8 +412,8 @@ export default function Chatbot() {
                             padding: "12px",
                             overflowY: "auto",
                             background: "#fafafa",
-                            scrollbarWidth: "none", // Firefox
-                            msOverflowStyle: "none", // IE 10+
+                            scrollbarWidth: "none",
+                            msOverflowStyle: "none",
                         }}
                         className="hide-scrollbar"
                     >
@@ -370,18 +426,15 @@ export default function Chatbot() {
                                     background: msg.from === "user" ? "#0078d4" : "#eee",
                                     color: msg.from === "user" ? "#fff" : "#000",
                                     maxWidth: "80%",
-                                    fontSize: "14px" // <-- Reduced message text size
+                                    fontSize: "14px"
                                 }}>
                                     <ReactMarkdown>{msg.text}</ReactMarkdown>
                                 </span>
                             </div>
                         ))}
                         {loading && <div style={{ marginBottom: "8px", textAlign: "left", color: "#888" }}>
-                            
-                                <TypingDots />
-                                <TypingDots />
-                                <TypingDots />
-                            </div>}
+                            <TypingDots />
+                        </div>}
                     </div>
                     <form onSubmit={handleSend} style={{ display: "flex", borderTop: "1px solid #eee", padding: "8px" }}>
                         <input
@@ -395,7 +448,7 @@ export default function Chatbot() {
                                 borderRadius: "8px",
                                 color: "#000",
                                 background: "#fff",
-                                fontSize: "14px" // <-- Reduced input text size
+                                fontSize: "14px"
                             }}
                             placeholder="Type a message..."
                             disabled={loading}
@@ -416,7 +469,6 @@ export default function Chatbot() {
                             }}
                             disabled={loading}
                         >
-                            {/* Send Arrow SVG */}
                             <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
                                 <path d="M4 12h16M14 6l6 6-6 6" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                             </svg>
@@ -424,46 +476,7 @@ export default function Chatbot() {
                     </form>
                 </div>
             )}
-            {/* Add keyframes for expand/shrink animation */}
             <style>{`
-        .jumping-dots span {
-          display: inline-block;
-          animation: jump 1.2s infinite;
-        }
-        .jumping-dots span:nth-child(2) {
-          animation-delay: 0.25s;
-        }
-        .jumping-dots span:nth-child(3) {
-          animation-delay: 0.5s;
-        }
-        @keyframes jump {
-          0%, 80%, 100% { transform: translateY(0); }
-          40% { transform: translateY(-22px); }
-        }
-        @keyframes expandFromIcon {
-          0% {
-            transform: scale(0.13);
-            opacity: 0.7;
-          }
-          80% {
-            transform: scale(1.05);
-            opacity: 1;
-          }
-          100% {
-            transform: scale(1);
-            opacity: 1;
-          }
-        }
-        @keyframes shrinkToIcon {
-          0% {
-            transform: scale(1);
-            opacity: 1;
-          }
-          100% {
-            transform: scale(0.13);
-            opacity: 0.7;
-          }
-        }
         .hide-scrollbar::-webkit-scrollbar {
           display: none;
         }
@@ -489,5 +502,3 @@ export default function Chatbot() {
         </>
     );
 }
-
-// export default Chatbot;
