@@ -1,6 +1,5 @@
 "use client";
 import { useEffect, useState } from "react";
-import { personalData } from "@/utils/data/personal-data";
 import AboutSection from "./components/homepage/about";
 import Blog from "./components/homepage/blog";
 import ContactSection from "./components/homepage/contact";
@@ -14,29 +13,79 @@ import Chatbot from "./components/homepage/bot";
 import Footer from "./components/footer";
 import Navbar from "./components/navbar";
 import { PacmanLoader } from "react-spinners";
+import { v4 as uuidv4 } from "uuid"; // Install with: npm install uuid
 
 export default function Home() {
   const [portfolio, setPortfolio] = useState(null);
   const [loading, setLoading] = useState(true);
 
-   const getUserIdFromDomain = () => {
-        if (typeof window !== "undefined") {
-            const hostname = window.location.hostname; // e.g. "localhost" or "xyz.portfolio.com"
+  const getUserIdFromDomain = () => {
+    if (typeof window !== "undefined") {
+      const hostname = window.location.hostname; // e.g. "localhost" or "xyz.portfolio.com"
 
-            if (hostname.includes(".")) {
-                // Take the first part of the domain (subdomain)
-                return hostname.split(".")[0];
-            }
+      if (hostname.includes(".")) {
+        // Take the first part of the domain (subdomain)
+        return hostname.split(".")[0];
+      }
 
-            return hostname; // For "localhost"
-        }
-        return "";
-    };
+      return hostname; // For "localhost"
+    }
+    return "";
+  };
+
+  const getOrCreateUserId = () => {
+    if (typeof window !== "undefined") {
+      let userId = localStorage.getItem("portfolio_user_id");
+      if (!userId) {
+        userId = uuidv4();
+        localStorage.setItem("portfolio_user_id", userId);
+        return { userId, isNew: true };
+      }
+      return { userId, isNew: false };
+    }
+    return { userId: "", isNew: false };
+  };
+
+  const getDeviceDetails = async () => {
+    if (typeof window !== "undefined") {
+      let location = {};
+      try {
+        const res = await fetch("https://ipapi.co/json/");
+        const data = await res.json();
+        location = {
+          ip: data.ip,
+          country: data.country_name,
+          city: data.city,
+          region: data.region,
+        };
+      } catch {
+        location = {};
+      }
+      return {
+        userAgent: navigator.userAgent,
+        platform: navigator.platform,
+        language: navigator.language,
+        location, // location is now part of deviceDetails
+      };
+    }
+    return {};
+  };
+
   useEffect(() => {
     async function fetchPortfolio() {
       try {
-        // Replace 'sakthisaran' with your actual UID if needed
-        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/v1/content/portfolio/${getUserIdFromDomain()}`);
+        const { userId, isNew } = getOrCreateUserId();
+        const deviceDetails = await getDeviceDetails();
+
+        await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/v1/user/track`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ userId, isNew, deviceDetails }),
+        });
+
+        const res = await fetch(
+          `${process.env.NEXT_PUBLIC_API_URL}/api/v1/content/portfolio/${getUserIdFromDomain()}`
+        );
         const data = await res.json();
         setPortfolio(data);
       } catch (error) {
@@ -57,9 +106,12 @@ export default function Home() {
 
   return (
     <div suppressHydrationWarning>
-      <Navbar personalData={portfolio.personalData}/>
+      <Navbar personalData={portfolio.personalData} />
       <Chatbot />
-      <HeroSection personalData={portfolio.personalData} skillsData={portfolio.skillsData} />
+      <HeroSection
+        personalData={portfolio.personalData}
+        skillsData={portfolio.skillsData}
+      />
       <AboutSection personalData={portfolio.personalData} />
       <Experience experiences={portfolio.experiences} />
       <Skills skills={portfolio.skillsData} />
@@ -68,7 +120,7 @@ export default function Home() {
       <Github github={portfolio.github} git={portfolio.personalData.github} />
       <Blog blogs={portfolio.blog} />
       <ContactSection contact={portfolio.contact} />
-      <Footer personalData={portfolio.personalData}/>
+      <Footer personalData={portfolio.personalData} />
     </div>
   );
 }
