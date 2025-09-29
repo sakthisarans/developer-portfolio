@@ -77,7 +77,7 @@ export default function Home() {
         const { userId, isNew } = getOrCreateUserId();
         const deviceDetails = await getDeviceDetails();
 
-        await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/v1/user/track`, {
+        await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/v1/visitor/track`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ userId, isNew, deviceDetails }),
