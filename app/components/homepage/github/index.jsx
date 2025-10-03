@@ -1,7 +1,7 @@
 // @flow strict
 import Link from 'next/link';
 import { FaArrowRight } from 'react-icons/fa';
-import BlogCard from './blog-card';
+import RepoCard from './repo-card';
 import Image from 'next/image';
 
 function Github({ github, git }) {
@@ -30,12 +30,13 @@ function Github({ github, git }) {
           github["repos"].slice(0, 6).map((repo, i) => {
 
             return (
-              <BlogCard
+              <RepoCard
                 key={i}
-                blog={{
+                repo={{
                   title: repo.name,
                   description: repo.readme,
-                  cover_image: repo.image
+                  cover_image: repo.image,
+                  url:url
                 }}
               />
             );

@@ -17,6 +17,7 @@
     "framer-motion": "^12.23.16",
     "lottie-react": "^2.4.1",
     "next": "15.1.1",
+    "nextjs-google-analytics": "^2.3.7",
     "nodemailer": "^6.9.15",
     "react": "19.0.0",
     "react-dom": "19.0.0",

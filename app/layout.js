@@ -25,6 +25,7 @@ export default function RootLayout({ children }) {
         </main>
         
       </body>
+      <GoogleAnalytics gaMeasurementId={process.env.NEXT_PUBLIC_GOOGLE_ANALYTICS} />
       <GoogleTagManager gtmId={process.env.NEXT_PUBLIC_GTM} />
     </html>
   );
