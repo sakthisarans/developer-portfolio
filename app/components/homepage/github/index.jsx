@@ -34,9 +34,9 @@ function Github({ github, git }) {
                 key={i}
                 repo={{
                   title: repo.name,
-                  description: repo.readme,
-                  cover_image: repo.image,
-                  url:url
+                  description: repo.description,
+                  cover_image: repo.openGraphImageUrl,
+                  url: repo.url
                 }}
               />
             );

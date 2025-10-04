@@ -5,7 +5,9 @@ import ReactMarkdown from 'react-markdown';
 
 function RepoCard({ repo }) {
   return (
-    <div className="border border-[#1d293a] hover:border-[#464c6a] transition-all duration-500 bg-[#1b203e] rounded-lg relative group">
+    <div 
+    onClick={() => window.open(repo.url, "_blank")} 
+    className="border border-[#1d293a] hover:border-[#464c6a] transition-all duration-500 bg-[#1b203e] rounded-lg relative group">
       
       {/* Image */}
       <div className="h-44 lg:h-52 w-auto cursor-pointer overflow-hidden rounded-t-lg">
@@ -37,15 +39,6 @@ function RepoCard({ repo }) {
           </div>
         ) : (
           <p className='text-sm lg:text-base text-[#d3d8e8] pb-3 lg:pb-6 break-words'>No description available.</p>
-        )}
-
-        {/* Optional link to repo */}
-        {repo.url && (
-          <Link target='_blank' href={repo.url}>
-            <button className='bg-violet-500 text-white px-3 py-1.5 rounded-full text-xs'>
-              View Repository
-            </button>
-          </Link>
         )}
       </div>
     </div>
